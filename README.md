@@ -100,7 +100,7 @@ Variety of features helps us in roboust detection system hence we normalize and 
 
 Normalize using sklearn's StandardScaler():
 
-  `
+ ```
   import numpy as np
   feature_list = [feature_vec1, feature_vec2, ...]
   
@@ -112,7 +112,8 @@ Normalize using sklearn's StandardScaler():
   X_scaler = StandardScaler().fit(X)
   # Apply the scaler to X
   scaled_X = X_scaler.transform(X)
-  `
+  ```
+  
 Combine features:
 
 `
