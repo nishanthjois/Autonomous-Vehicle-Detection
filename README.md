@@ -99,6 +99,7 @@ So, the actual number of features in your final feature vector will be the total
 Variety of features helps us in roboust detection system hence we normalize and combine features.
 
 Normalize using sklearn's StandardScaler():
+
   `
   import numpy as np
   feature_list = [feature_vec1, feature_vec2, ...]
@@ -113,6 +114,7 @@ Normalize using sklearn's StandardScaler():
   scaled_X = X_scaler.transform(X)
   `
 Combine features:
+
 `
 def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
                         hist_bins=32, hist_range=(0, 256)):
@@ -120,18 +122,18 @@ def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
     features = []
     # Iterate through the list of images
     for file in imgs:
-        # Read in each one by one
+       # Read in each one by one
         image = mpimg.imread(file)
         # apply color conversion if other than 'RGB'
         if cspace != 'RGB':
-            if cspace == 'HSV':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+           if cspace == 'HSV':
+              feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
             elif cspace == 'LUV':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
+               feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
             elif cspace == 'HLS':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+               feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
             elif cspace == 'YUV':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+               feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
         else: feature_image = np.copy(image)      
         # Apply bin_spatial() to get spatial color features
         spatial_features = bin_spatial(feature_image, size=spatial_size)
@@ -150,25 +152,31 @@ Steps:
 2. Combine features
 2. Shuffle the input data (provided) - to avoid problems due to ordering
 2. Split the data into training and testing set - to avoid overfitting and improve generalization
+
 `
   from sklearn.cross_validation import train_test_split
   rand_state = np.random.randint(0, 100)
   X_train, X_test, y_train, y_test = train_test_split(
   scaled_X, y, test_size=0.2, random_state=rand_state)
 `
+
 3. Train a classifier to detect car images from other images using ....
+
 `
 from sklearn.svm import LinearSVC
 svc = LinearSVC()
 # Train the SVC
 svc.fit(X_train, y_train)
 `
+
 5. Check accuracy
+
 `print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
 `
 
 5. 
 Predicted output:
+
 `
 print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
 print('For labels: ', y_test[0:10])
@@ -205,11 +213,13 @@ We will build a heat map to combine overlapping detections and remove false posi
 - Due to above, areas of multiple detections get "hot", while transient false positives stay "cool". You can then simply threshold your heatmap to remove false positives.
 - By manually checking number of false postivies windows (on test images) we can set a threshold to remove it
 - To figure out how many cars we have in each frame and which pixels belong to which cars, we use the label() function from scipy.ndimage.measurements.
+
 `heatmap = threshold(heatmap, 2)
 labels = label(heatmap)
 print(labels[1], 'cars found')
 plt.imshow(labels[0], cmap='gray')
 `
+
 - We can take our thresholded and labeled images and put bounding boxes around the labeled regions, so that we get single box instead of multiple detections for the same car 
 
 #### Image pipeline
