@@ -136,7 +136,7 @@ So, the actual number of features in your final feature vector will be the total
 
 Variety of features helps us in roboust detection system hence we normalize features and then combine them.
 
-Normalize using sklearn's StandardScaler():
+#### Normalize using sklearn's StandardScaler():
 
  ```
   # Create an array stack of feature vectors
@@ -153,7 +153,8 @@ Normalize using sklearn's StandardScaler():
   
   ```
   
-Combine features:
+#### Combine features:
+
 `
 # Define a function to extract features from a list of images
 def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
@@ -195,16 +196,15 @@ def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
     return features
 
 `
+
 ### Build a classifier
 [Code for this part is in 'Classifier' section of notebook]
 
-Steps:
+#### Steps:
 1. Extract features (color and hog features) from list of images
 2. Combine features
 3. Shuffle the input data (provided) - to avoid problems due to overfitting
-4. Split the data into training and testing set - to avoid overfitting and improve generalization
-
-#### Split train-test data:
+4. Split the data into training and testing set - to avoid overfitting and improve generalization:
 
 `
   from sklearn.cross_validation import train_test_split
@@ -247,7 +247,7 @@ We can test predicted output using below code:
 `
 
 9. Final step is to experiment with different parameters
-I Tweaked different parameters and finally settled with these:
+(I Tweaked different parameters and finally settled with below parameters as with accuracy was high and false postivies were minimum)
 
 `
   color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
@@ -283,22 +283,23 @@ I Tweaked different parameters and finally settled with these:
      pickle.dump(dist_pickle, f)
 `
 
-This can retrived using: 
+saved model can retrived using: 
 
 `
-dist_pickle = pickle.load(open("svc_pickle.p", "rb"))
-svc = dist_pickle["svc"]`
-# ... and so on
- 
+  dist_pickle = pickle.load(open("svc_pickle.p", "rb"))
+  svc = dist_pickle["svc"]
+  # and so on ....
+`
 
-#### Sliding window
+
+### Sliding window
 [Code for this part is in find_cars () method of notebook]
 
 1. If accuracy is good then we will run this classifier across entire frame sampling small patches to detect presence of car in a grid pattern.
 2. From our successful prediction we can get start and stop positions in both x and y to get co-ordinates of bounding boxes.
 3. From this list of bounding boxes for the search windows we can draw rectangles using draw draw_boxes() function.
 
-#### Hog Sub-sampling Window Search:
+### Hog Sub-sampling Window Search:
 
 Instead of extracting hog features for every small patch, we will extract hog features once and sub small to get all windows/boxes.
 
@@ -338,7 +339,8 @@ Heat map with both multiple detections False postive:
 Step 2:
 - Due to above, areas of multiple detections get "hot", while transient false positives stay "cool". We can then simply threshold your heatmap to remove false positives. Ex: heatmap = threshold(heatmap, 4) # if number of detected windows are less than 4 than those will be considered as false positive.
 
-Thresholded hear
+Thresholded heatmap:
+
 ![Alt text](/Output-images/thresholded_heatmap.png?)
 
 Step 3:
@@ -350,6 +352,7 @@ Step 4:
 ![Alt text](/Output-images/final_car_position.png?)
 
 Code: 
+
 `
 from scipy.ndimage.measurements import label
 
@@ -388,8 +391,9 @@ def draw_labeled_bboxes(img, labels):
 
 `
 
-#### Image pipeline
+### Image pipeline
 Once we are comfortable with our output on a single image we can test on series of images:
+
 `
 def pipeline(img):
    scales = [1., 1.25, 1.5, 1.75, 2.]
