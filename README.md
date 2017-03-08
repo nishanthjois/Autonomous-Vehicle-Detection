@@ -139,7 +139,7 @@ Variety of features helps us in roboust detection system hence we normalize feat
 
 #### Normalize using sklearn's StandardScaler():
 
- ```
+ `
   # Create an array stack of feature vectors
   
   X = np.vstack((car_features, notcar_features)).astype(np.float64)     
@@ -152,17 +152,17 @@ Variety of features helps us in roboust detection system hence we normalize feat
   
   scaled_X = X_scaler.transform(X)
   
-  ```
+  `
   
+
 #### Combine features:
 
-
-`
-   # Define a function to extract features from a list of images
-    def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
-      hist_bins=32, hist_range=(0, 256),
-      orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0,
-      spatial_feat=True, hist_feat=True, hog_feat=True):
+  
+  `
+  def extract_features(imgs, cspace='RGB', spatial_size=(32, 32), hist_bins=32, hist_range=(0, 256),
+    orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0,
+     spatial_feat=True, hist_feat=True, hog_feat=True):
+     
         # Create a list to append feature vectors to
         features = []
         # Iterate through the list of images
