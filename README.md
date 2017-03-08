@@ -23,8 +23,11 @@ Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacit
 
 **If you're feeling ambitious** (also totally optional though), don't stop there!  We encourage you to go out and take video of your own, and show us how you would implement this project on a new video!
 
-
-
+### Read input data
+First step is to read and store car and non-car images for training
+`cars = glob.glob('vehicles/*/*.png')
+notcars = glob.glob('non-vehicles/*/*.png')`
+![Alt text](/Output-images/car.png?)
 
 ### Histogram of Color
 Template mathching are not robust to changes in appearance, hence we use a better transformation method which is to compute histogram of color values, this gives locations of similar distribution a close match therefore removing sensitiviting to perfect arrangement of pixels 
