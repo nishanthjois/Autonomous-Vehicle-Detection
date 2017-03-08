@@ -196,11 +196,15 @@ def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
 
 `
 ### Build a classifier
+[Code for this part is in 'Classifier' section of notebook]
+
 Steps:
 1. Extract features (color and hog features) from list of images
 2. Combine features
-2. Shuffle the input data (provided) - to avoid problems due to ordering
-2. Split the data into training and testing set - to avoid overfitting and improve generalization
+3. Shuffle the input data (provided) - to avoid problems due to overfitting
+4. Split the data into training and testing set - to avoid overfitting and improve generalization
+
+#### Split train-test data:
 
 `
   from sklearn.cross_validation import train_test_split
@@ -209,68 +213,219 @@ Steps:
   scaled_X, y, test_size=0.2, random_state=rand_state)
 `
 
-3. Train a classifier to detect car images from other images using ....
+5. Define output lables:
 
 `
-from sklearn.svm import LinearSVC
-svc = LinearSVC()
-# Train the SVC
-svc.fit(X_train, y_train)
+# Define the labels vector
+y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
 `
 
-5. Check accuracy
-
-`print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
-`
-
-5. 
-Predicted output:
+6. Train a classifier to detect car images from other images using LinearSVC()
+(I tried other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
 
 `
-print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
-print('For labels: ', y_test[0:10])
+  from sklearn.svm import LinearSVC
+  svc = LinearSVC()
+  # Train the SVC
+  svc.fit(X_train, y_train)
+`
+
+7. Check accuracy
 
 `
-I tried with these classifier and finally choose this:
+  print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
 
-I  tweaked these paramerets:
-### TODO: Tweak these parameters and see how the results change.
-colorspace = 'HSV' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 9
-pix_per_cell = 8
-cell_per_block = 2
-hog_channel = "ALL" # Can be 0, 1, 2, or "ALL"
+`
 
+8. Predict output:
+We can test predicted output using below code:
+
+`
+  print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
+  print('For labels: ', y_test[0:10])
+
+`
+
+9. Final step is to experiment with different parameters
+I Tweaked different parameters and finally settled with these:
+
+`
+  color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+  orient = 9  # HOG orientations
+  pix_per_cell = 8 # HOG pixels per cell
+  cell_per_block = 2 # HOG cells per block
+  hog_channel = "ALL" # Can be 0, 1, 2, or "ALL"
+  spatial_size = (32, 32) # Spatial binning dimensions
+  hist_bins = 32    # Number of histogram bins
+  spatial_feat = True # Spatial features on or off
+  hist_feat = True # Histogram features on or off
+
+`
+
+10. Save the model in a pickle file
+
+`
+  import pickle
+  hist_range = (0, 256)
+  dist_pickle = {}
+  dist_pickle["svc"] = svc
+  dist_pickle["scaler"] = X_scaler
+  dist_pickle["color_space"] = color_space
+  dist_pickle["orient"] = orient
+  dist_pickle["pix_per_cell"] = pix_per_cell
+  dist_pickle["cell_per_block"] = cell_per_block
+  dist_pickle["hog_channel"] = hog_channel
+  dist_pickle["spatial_size"] = spatial_size
+  dist_pickle["hist_bins"] = hist_bins
+  dist_pickle["hist_range"] = hist_range
+
+  with open('svc_pickle.p', 'wb') as f:
+     pickle.dump(dist_pickle, f)
+`
+
+This can retrived using: 
+
+`
+dist_pickle = pickle.load(open("svc_pickle.p", "rb"))
+svc = dist_pickle["svc"]`
+# ... and so on
+ 
 
 #### Sliding window
-1. If accuracy is good then will run this classifier across entire frame sampling small patches to detect presence of car in a grid pattern.
-2. From our successful prediction we can get start and stop positions in both x and y 
+[Code for this part is in find_cars () method of notebook]
+
+1. If accuracy is good then we will run this classifier across entire frame sampling small patches to detect presence of car in a grid pattern.
+2. From our successful prediction we can get start and stop positions in both x and y to get co-ordinates of bounding boxes.
 3. From this list of bounding boxes for the search windows we can draw rectangles using draw draw_boxes() function.
 
-### Multiscape search
-We are not sure what's the scale of the image we are searching (for example: cars far away appear smaller and closes ones appear large) hence we will set few minimum, maximum and intermediate scales to search.
+#### Hog Sub-sampling Window Search:
 
-### Hog Sub-sampling Window Search
 Instead of extracting hog features for every small patch, we will extract hog features once and sub small to get all windows/boxes.
 
 
-### False postives
-As seen below we will get multiple detections for the same car and also a false positive, we should filter these out
+Car predicted using a classifier and drawn rectangle over predicted cars:
+![Alt text](/Output-images/window_search.png.png?)
 
-We will build a heat map to combine overlapping detections and remove false positives.
-- To make a heat-map, we're simply going to add "heat" (+=1) for all pixels within windows where a positive detection is reported by your classifier.
-- Due to above, areas of multiple detections get "hot", while transient false positives stay "cool". You can then simply threshold your heatmap to remove false positives.
-- By manually checking number of false postivies windows (on test images) we can set a threshold to remove it
-- To figure out how many cars we have in each frame and which pixels belong to which cars, we use the label() function from scipy.ndimage.measurements.
 
-`heatmap = threshold(heatmap, 2)
-labels = label(heatmap)
-print(labels[1], 'cars found')
-plt.imshow(labels[0], cmap='gray')
+### Multiscape search
+[Code for this part is in pipleline () method of notebook]
+
+The multi-scale window approach prevents calculation of feature vectors for the complete image and thus helps in speeding up the process. 
+
+We are not sure what's the scale of the image we are searching (for example: cars far away appear smaller and closes ones appear large) hence we will set few minimum, maximum and intermediate scales to search. 
+
+`
+for scale in scales:
+   box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
+   
 `
 
-- We can take our thresholded and labeled images and put bounding boxes around the labeled regions, so that we get single box instead of multiple detections for the same car 
+### Remove multiple detections False postives
+[Code for this part is in 'multiple detections and false postives' section of notebook]
+
+As seen below we will get multiple detections for the same car and also a false positives (i.e., classifier predicted a car where was no car), we should filter these out:
+
+![Alt text](/Output-images/multiple_detections.png?)
+
+Step 1:
+For this, we will build a heat map to combine overlapping detections and remove false positives.
+- To make a heat-map, we're simply going to add "heat" (+=1) for all pixels within windows where a positive detection is reported by your classifier. 
+
+Heat map with both multiple detections False postive:
+
+![Alt text](/Output-images/heatmap_falsepositives.png?)
+
+Step 2:
+- Due to above, areas of multiple detections get "hot", while transient false positives stay "cool". We can then simply threshold your heatmap to remove false positives. Ex: heatmap = threshold(heatmap, 4) # if number of detected windows are less than 4 than those will be considered as false positive.
+
+Thresholded hear
+![Alt text](/Output-images/thresholded_heatmap.png?)
+
+Step 3:
+- To figure out how many cars we have in each frame and which pixels belong to which cars, we use the label() function from scipy.ndimage.measurements. 
+
+Step 4:
+- We can take our thresholded and labeled images and put bounding boxes around the labeled regions, so that we get single box instead of multiple detections for the same car - this we will our output image
+
+![Alt text](/Output-images/final_car_position.png?)
+
+Code: 
+`
+from scipy.ndimage.measurements import label
+
+def add_heat(img, bbox_list):
+    heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
+    # Iterate through list of bboxes
+    for box in bbox_list:
+        # Add += 1 for all pixels inside each bbox
+        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+    # Return updated heatmap
+    return np.clip(heatmap, 0, 255)
+    
+def apply_threshold(heatmap, threshold):
+    heat = np.copy(heatmap)
+    # Zero out pixels below the threshold
+    heat[heat <= threshold] = 0
+    # Return thresholded map
+    return heat
+
+def draw_labeled_bboxes(img, labels):
+    # Make a copy of the image
+    imcopy = np.copy(img)
+    # Iterate through all detected cars
+    for car_number in range(1, labels[1]+1):
+        # Find pixels with each car_number label value
+        nonzero = (labels[0] == car_number).nonzero()
+        # Identify x and y values of those pixels
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+        # Define a bounding box based on min/max x and y
+        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+        # Draw the box on the image
+        cv2.rectangle(imcopy, bbox[0], bbox[1], (0,0,255), 6)
+    # Return the image
+    return imcopy
+
+`
 
 #### Image pipeline
+Once we are comfortable with our output on a single image we can test on series of images:
+`
+def pipeline(img):
+   scales = [1., 1.25, 1.5, 1.75, 2.]
+   box_list = []
+   for scale in scales:
+      box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
+    heatmap = add_heat(img, box_list)
+    updated_heatmap = apply_threshold(heatmap, 4)
+    labels = label(updated_heatmap)
+    result = draw_labeled_bboxes(img, labels)
+    return result
+ `
+
 
 ###  Video pipeline
+Final step will be to run on project video:
+
+`
+from moviepy.editor import VideoFileClip
+from IPython.display import HTML
+
+video_output = 'project_video_output.mp4'
+clip1 = VideoFileClip("project_video.mp4")
+video_clip = clip1.fl_image(pipeline)
+%time video_clip.write_videofile(video_output, audio=False)
+`
+
+#### Lane detection and vechile detection:
+
+Here we will combine the Lane detection and vechile detection pipeline test on our project_video.
+
+
+Future work:
+1. Optimize search by limiting number of frames to search, instead of processing for every frame. 
+2. Remove false postivies.
+3. Make car detection smooth - in the above pipeline bounding boxes keeps jumping around.
+4. Try with a video taken on Indian roads!
+2. Current pipeline is slow
+
