@@ -74,6 +74,7 @@ Even going all the way down to 32 x 32 pixel resolution, the car itself is still
   `
   small_img = cv2.resize(image, (32, 32))
   `
+  
 ![Alt text](/Output-images/car_spat.png?)
 
 
@@ -155,45 +156,46 @@ Variety of features helps us in roboust detection system hence we normalize feat
   
 #### Combine features:
 
+
 `
-# Define a function to extract features from a list of images
-def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
-  hist_bins=32, hist_range=(0, 256),
-  orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0,
-  spatial_feat=True, hist_feat=True, hog_feat=True):
-    # Create a list to append feature vectors to
-    features = []
-    # Iterate through the list of images
-    for file in imgs:
-       combined_features = []
-        # Read in each one by one
-        image = mpimg.imread(file, format='PNG')
-        # apply color conversion if other than 'RGB'
-        feature_image = convert_color(image, conv='RGB2YCrCb')  
-        
-        if spatial_feat:
-           # Apply bin_spatial() to get spatial color features
-            spatial_features = bin_spatial(feature_image, size=spatial_size)
-            combined_features.append(spatial_features)
-        if hist_feat:
-           # Apply color_hist() also with a color space option now
-            rhist, ghist, bhist, bin_centers, hist_features = color_hist(feature_image, nbins=hist_bins, bins_range=hist_range)
-            combined_features.append(hist_features)
-        if hog_feat:
-           # Call get_hog_features() with vis=False, feature_vec=True
-            if hog_channel == 'ALL':
-               hog_features = []
-                for channel in range(feature_image.shape[2]):
-                   hog_features.append(get_hog_features(feature_image[:,:,channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True))
-                hog_features = np.ravel(hog_features)        
-            else:
-               hog_features = get_hog_features(feature_image[:,:,hog_channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True)
-            combined_features.append(hog_features)
-        
-        # Append the new feature vector to the features list
-        features.append(np.concatenate(combined_features))
-    # Return list of feature vectors
-    return features
+   # Define a function to extract features from a list of images
+    def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
+      hist_bins=32, hist_range=(0, 256),
+      orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0,
+      spatial_feat=True, hist_feat=True, hog_feat=True):
+        # Create a list to append feature vectors to
+        features = []
+        # Iterate through the list of images
+        for file in imgs:
+           combined_features = []
+            # Read in each one by one
+            image = mpimg.imread(file, format='PNG')
+            # apply color conversion if other than 'RGB'
+            feature_image = convert_color(image, conv='RGB2YCrCb')  
+
+            if spatial_feat:
+               # Apply bin_spatial() to get spatial color features
+                spatial_features = bin_spatial(feature_image, size=spatial_size)
+                combined_features.append(spatial_features)
+            if hist_feat:
+               # Apply color_hist() also with a color space option now
+                rhist, ghist, bhist, bin_centers, hist_features = color_hist(feature_image, nbins=hist_bins, bins_range=hist_range)
+                combined_features.append(hist_features)
+            if hog_feat:
+               # Call get_hog_features() with vis=False, feature_vec=True
+                if hog_channel == 'ALL':
+                   hog_features = []
+                    for channel in range(feature_image.shape[2]):
+                       hog_features.append(get_hog_features(feature_image[:,:,channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True))
+                    hog_features = np.ravel(hog_features)        
+                else:
+                   hog_features = get_hog_features(feature_image[:,:,hog_channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True)
+                combined_features.append(hog_features)
+
+            # Append the new feature vector to the features list
+            features.append(np.concatenate(combined_features))
+        # Return list of feature vectors
+        return features
 
 `
 
