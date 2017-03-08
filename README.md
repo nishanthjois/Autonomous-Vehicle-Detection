@@ -25,11 +25,15 @@ Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacit
 
 ### Read input data
 First step is to read and store car and non-car images for training
-`cars = glob.glob('vehicles/*/*.png')
-notcars = glob.glob('non-vehicles/*/*.png')`
-![Alt text](/Output-images/car.png?)
+
+  `cars = glob.glob('vehicles/*/*.png')
+  notcars = glob.glob('non-vehicles/*/*.png')`
+
+![Alt text](/Output-images/car_non_car.png?)
 
 ### Histogram of Color
+[Code for this section is in color_hist() method]
+
 Template mathching are not robust to changes in appearance, hence we use a better transformation method which is to compute histogram of color values, this gives locations of similar distribution a close match therefore removing sensitiviting to perfect arrangement of pixels 
 
 We can construct histograms of the R, G, and B channels like this:
@@ -38,40 +42,69 @@ We can construct histograms of the R, G, and B channels like this:
   ghist = np.histogram(image[:,:,1], bins=32, range=(0, 256))
   bhist = np.histogram(image[:,:,2], bins=32, range=(0, 256))
   ```
-Results of plotting:
+Results of plotting for car image:
+![Alt text](/Output-images/rgb.png?)
 
+Results of plotting for non-car image:
+![Alt text](/Output-images/rgb_noncar.png?)
 
 Disadvantage of histogram of color transformation is we are purely relying on color.
 
 ### Color spaces
+[Code for this section is in plot3d() method]
+
 Cars are more saturated than background like sky, road, etc., hence we will explore different color spaces (RGB, HSV, YCrRB) and also we will check the difference between choosen color space for car image and non car image. 
 
-See results of various 
+From results of various color spaces we can observe that it is easy to differentiate different colors using YCrRB:
+
+![Alt text](/Output-images/3drgb.png?)
+
+![Alt text](/Output-images/3dhsv.png?)
+
+![Alt text](/Output-images/3dycr.png?)
+
 
 ### Spatial binning
+[Code for this section is in bin_spatial() method]
+
 Raw pixel values are still quite useful to include in our feature vector in searching for cars. As it will be cumbersome to include three color channels of a full resolution image we can perform spatial binning on an image and still retain enough information to help in finding vehicles.
 
-As we can see in the example above, even going all the way down to 32 x 32 pixel resolution, the car itself is still clearly identifiable by eye, and this means that the relevant features are still preserved at this resolution.
+Even going all the way down to 32 x 32 pixel resolution, the car itself is still clearly identifiable by eye, and this means that the relevant features are still preserved at this resolution.
 
-small_img = cv2.resize(image, (32, 32))
+  `
+  small_img = cv2.resize(image, (32, 32))
+  `
+![Alt text](/Output-images/car_spat.png?)
 
 
 ### HOG:
+[Code for this section is in get_hog_features() method]
+
 Gradients and edges gives more robust representation and captures notion of shape. 
 
-There is an excellent tutorial here: http://www.learnopencv.com/histogram-of-oriented-gradients/ but I will list few important terms here:
+There is an excellent tutorial here: http://www.learnopencv.com/histogram-of-oriented-gradients/ but we will list few important terms here:
 
 In the HOG feature descriptor, the distribution (histograms) of directions of gradients (oriented gradients) are used as features. Gradients (x and y derivatives ) of an image are useful because the magnitude of gradients is large around edges and corners (regions of abrupt intensity changes) and we know that edges and corners pack in a lot more information about object shape than flat regions. 
 
-At every pixel, the gradient has a magnitude and a direction. We will group these pixels into small cells (say 8 x8 pixels). Inside these cell will compute HOG. The x-gradient fires on vertical lines and the y-gradient fires on horizontal lines. The magnitude of gradient fires where ever there is a sharp change in intensity. None of them fire when the region is smooth. For color images, the gradients of the three channels are evaluated. The magnitude of gradient at a pixel is the maximum of the magnitude of gradients of the three channels, and the angle is the angle corresponding to the maximum gradient.
+At every pixel, the gradient has a magnitude and a direction. We will group these pixels into small cells (say 8 x8 pixels). Inside these cell will compute HOG. The x-gradient fires on vertical lines and the y-gradient fires on horizontal lines. The magnitude of gradient fires where ever there is a sharp change in intensity. None of them fire when the region is smooth. 
+
+For color images, the gradients of the three channels are evaluated). The magnitude of gradient at a pixel is the maximum of the magnitude of gradients of the three channels, and the angle is the angle corresponding to the maximum gradient.
 
 The histogram is essentially a vector (or an array ) of 9 bins (numbers) corresponding to angles 0, 20, 40, 60 … 160. Gradient samples are distributed into these bins and summed up. 
 
-Each pixel in the image gets a vote on which histogram bin it belongs based on the gradient direction at that position, but the weight of that vote depends on the gradient magnitude at that pixel. When we do this for all the cells we see a representation of the original strucutre image, this can be used as a signature for a given shape.
+Each pixel in the image gets a vote on which histogram bin it belongs based on the gradient direction at that position, but the weight of that vote depends on the gradient magnitude at that pixel. When we do this for all the cells we see a representation of the original strucutre image, this can be used as a signature for a given shape; like these for car:
+
+![Alt text](/Output-images/hog.png?)
+
+![Alt text](/Output-images/hog2.png?)
+
+HOG for non-car:
+
+![Alt text](/Output-images/non_hog.png?)
 
 The scikit-image package has a built in function to extract Histogram of Oriented Gradient features:
 
-The scikit-image hog() function takes in a single color channel or grayscaled image as input, as well as various parameters. These parameters include orientations, pixels_per_cell and cells_per_block.
+The scikit-image hog() function takes in a single color channel or grayscaled image as input, as well as parameters like orientations, pixels_per_cell and cells_per_block.
 
 The number of orientations is specified as an integer, and represents the number of orientation bins that the gradient information will be split up into in the histogram. Typical values are between 6 and 12 bins.
 
@@ -79,77 +112,89 @@ The pixels_per_cell parameter specifies the cell size over which each gradient h
 
 The cells_per_block parameter is also passed as a 2-tuple, and specifies the local area over which the histogram counts in a given cell will be normalized. Block normalization is not necessarily required, but generally leads to a more robust feature set.
 
-```
-from skimage.feature import hog
-def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
-    if vis == True:
-        features, hog_image = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
-                                  cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
-                                  visualise=True, feature_vector=False)
-        return features, hog_image
-    else:      
-        features = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
-                       cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
-                       visualise=False, feature_vector=feature_vec)
-        return features
-``` 
+  ```
+  from skimage.feature import hog
+  def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
+      if vis == True:
+          features, hog_image = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
+                                    cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
+                                    visualise=True, feature_vector=False)
+          return features, hog_image
+      else:      
+          features = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
+                         cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
+                         visualise=False, feature_vector=feature_vec)
+          return features
+  ``` 
 
 Let's say we are computing HOG features for an image that is 64×64 pixels. If you set pixels_per_cell=(8, 8) and cells_per_block=(2, 2) and orientations=9. The HOG features for all cells in each block are computed at each block position and the block steps across and down through the image cell by cell.
 
 So, the actual number of features in your final feature vector will be the total number of block positions multiplied by the number of cells per block, times the number of orientations, or in the case shown above: 7×7×2×2×9=1764.
 
 ### Normalization and combining features:
-Variety of features helps us in roboust detection system hence we normalize and combine features.
+[Code for normalization is shown below and code for extracting features section is in extract_features() method]
+
+Variety of features helps us in roboust detection system hence we normalize features and then combine them.
 
 Normalize using sklearn's StandardScaler():
 
  ```
-  import numpy as np
-  feature_list = [feature_vec1, feature_vec2, ...]
+  # Create an array stack of feature vectors
   
-  # Create an array stack, NOTE: StandardScaler() expects np.float64
-  X = np.vstack(feature_list).astype(np.float64)
-
-  from sklearn.preprocessing import StandardScaler
+  X = np.vstack((car_features, notcar_features)).astype(np.float64)     
+  
   # Fit a per-column scaler
+  
   X_scaler = StandardScaler().fit(X)
+  
   # Apply the scaler to X
+  
   scaled_X = X_scaler.transform(X)
+  
   ```
   
 Combine features:
-
 `
+# Define a function to extract features from a list of images
 def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
-                        hist_bins=32, hist_range=(0, 256)):
+  hist_bins=32, hist_range=(0, 256),
+  orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0,
+  spatial_feat=True, hist_feat=True, hog_feat=True):
     # Create a list to append feature vectors to
     features = []
     # Iterate through the list of images
     for file in imgs:
-       # Read in each one by one
-        image = mpimg.imread(file)
+       combined_features = []
+        # Read in each one by one
+        image = mpimg.imread(file, format='PNG')
         # apply color conversion if other than 'RGB'
-        if cspace != 'RGB':
-           if cspace == 'HSV':
-              feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-            elif cspace == 'LUV':
-               feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
-            elif cspace == 'HLS':
-               feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-            elif cspace == 'YUV':
-               feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
-        else: feature_image = np.copy(image)      
-        # Apply bin_spatial() to get spatial color features
-        spatial_features = bin_spatial(feature_image, size=spatial_size)
-        # Apply color_hist() also with a color space option now
-        hist_features = color_hist(feature_image, nbins=hist_bins, bins_range=hist_range)
+        feature_image = convert_color(image, conv='RGB2YCrCb')  
+        
+        if spatial_feat:
+           # Apply bin_spatial() to get spatial color features
+            spatial_features = bin_spatial(feature_image, size=spatial_size)
+            combined_features.append(spatial_features)
+        if hist_feat:
+           # Apply color_hist() also with a color space option now
+            rhist, ghist, bhist, bin_centers, hist_features = color_hist(feature_image, nbins=hist_bins, bins_range=hist_range)
+            combined_features.append(hist_features)
+        if hog_feat:
+           # Call get_hog_features() with vis=False, feature_vec=True
+            if hog_channel == 'ALL':
+               hog_features = []
+                for channel in range(feature_image.shape[2]):
+                   hog_features.append(get_hog_features(feature_image[:,:,channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True))
+                hog_features = np.ravel(hog_features)        
+            else:
+               hog_features = get_hog_features(feature_image[:,:,hog_channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True)
+            combined_features.append(hog_features)
+        
         # Append the new feature vector to the features list
-        features.append(np.concatenate((spatial_features, hist_features)))
+        features.append(np.concatenate(combined_features))
     # Return list of feature vectors
     return features
 
 `
-
 ### Build a classifier
 Steps:
 1. Extract features (color and hog features) from list of images
