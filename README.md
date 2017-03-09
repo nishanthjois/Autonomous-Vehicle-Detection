@@ -17,7 +17,7 @@ Steps of this project are the following:
 * Verify pipeline on test images
 * Run pipeline on a video stream
 
-Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/vehicles.zip) and [non-vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/non-vehicles.zip) examples to train your classifier.  These example images come from a combination of the [GTI vehicle image database](http://www.gti.ssr.upm.es/data/Vehicle_database.html), the [KITTI vision benchmark suite](http://www.cvlibs.net/datasets/kitti/), and examples extracted from the project video itself. 
+Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/vehicles.zip) and [non-vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/non-vehicles.zip) examples to train our classifier.  These example images come from a combination of the [GTI vehicle image database](http://www.gti.ssr.upm.es/data/Vehicle_database.html), the [KITTI vision benchmark suite](http://www.cvlibs.net/datasets/kitti/), and examples extracted from the project video itself. 
 
 Let's start!
 
@@ -127,7 +127,7 @@ The cells_per_block parameter is also passed as a 2-tuple, and specifies the loc
           return features
   ``` 
 
-Let's say we are computing HOG features for an image that is 64×64 pixels. If we set pixels_per_cell=(8, 8) and cells_per_block=(2, 2) and orientations=9. The HOG features for all cells in each block are computed at each block position and the block steps across and down through the image cell by cell. So, the actual number of features in your final feature vector will be the total number of block positions multiplied by the number of cells per block, times the number of orientations, or in the case shown above: 7×7×2×2×9=1764.
+Let's say we are computing HOG features for an image that is 64×64 pixels. If we set pixels_per_cell=(8, 8) and cells_per_block=(2, 2) and orientations=9. The HOG features for all cells in each block are computed at each block position and the block steps across and down through the image cell by cell. So, the actual number of features in our final feature vector will be the total number of block positions multiplied by the number of cells per block, times the number of orientations, or in the case shown above: 7×7×2×2×9=1764.
 
 ### Normalization and combining features:
 [Code for normalization is shown below and code for extracting features section is in extract_features() method]
@@ -282,7 +282,7 @@ Saved model can retrived using:
 Instead of extracting hog features for every small patch, we will extract hog features once and sub small to get all windows/boxes.
 
 Car predicted using a classifier and drawn rectangle over predicted cars:
-![Alt text](/Output-images/window_search.png.png?)
+![Alt text](/Output-images/window_search.png?)
 
 ### Multiscape search
 [Code for this part is in pipleline () method of notebook]
@@ -293,6 +293,14 @@ We are not sure what's the scale of the image we are searching (for example: car
 
     for scale in scales:
        box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
+       
+See what happens when scale is 1.25:
+![Alt text](/Output-images/scale_1_25.png?)
+
+See what happens when scale is 1.5:
+![Alt text](/Output-images/scale_1_5.png?)
+
+Hence we will choose different ystop/ystart and scales in our pipeline (see below).
 
 ### Remove multiple detections and false postives
 [Code for this part is in 'multiple detections and false postives' section of notebook]
@@ -304,14 +312,14 @@ As seen below we will get multiple detections for the same car and also a false 
 For this, we will build a heat map to combine overlapping detections and remove false positives:
 
 Step 1:
-To make a heat-map, we're simply going to add "heat" (+=1) for all pixels within windows where a positive detection is reported by your classifier. 
+To make a heat-map, we're simply going to add "heat" (+=1) for all pixels within windows where a positive detection is reported by our classifier. 
 
 Heat map with both multiple detections False postive:
 
 ![Alt text](/Output-images/heatmap_falsepositives.png?)
 
 Step 2:
-Due to above, areas of multiple detections get "hot", while transient false positives stay "cool". We can then simply threshold your heatmap to remove false positives. Ex: heatmap = threshold(heatmap, 4) # if number of detected windows are less than 4 than those will be considered as false positive.
+Due to above, areas of multiple detections get "hot", while transient false positives stay "cool". We can then simply threshold our heatmap to remove false positives. Ex: heatmap = threshold(heatmap, 4) # if number of detected windows are less than 4 than those will be considered as false positive.
 
 Thresholded heatmap:
 
