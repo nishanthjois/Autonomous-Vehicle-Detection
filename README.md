@@ -300,7 +300,7 @@ See what happens when scale is 1.25:
 See what happens when scale is 1.5:
 ![Alt text](/Output-images/scale_1_5.png?)
 
-Hence we will choose different ystop/ystart and scales in our pipeline (see below).
+We will also choose different ystop/ystart along scales in our pipeline (see below) to effecitively search our cars.
 
 ### Remove multiple detections and false postives
 [Code for this part is in 'multiple detections and false postives' section of notebook]
@@ -374,15 +374,16 @@ Code:
 Once we are comfortable with our output on a single image we can test on series of images:
     
     def pipeline(img):
-       scales = [1., 1.25, 1.5, 1.75, 2.]
-       box_list = []
-       for scale in scales:
-          box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
+    scales = [1., 1.25, 1.5, 1.75, 2.]
+    box_list = []
+    # Experiment with ystart, ystop and scale values
+    for (ystart, ystop, scale) in [(380, 580, 1), (400, 500, 1.3) , (420, 600, 1.5), (400, 650, 1.7), (450, 680, 2)]:
+        box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
         heatmap = add_heat(img, box_list)
-        updated_heatmap = apply_threshold(heatmap, 4)
+        updated_heatmap = apply_threshold(heatmap, 5)
         labels = label(updated_heatmap)
         result = draw_labeled_bboxes(img, labels)
-        return result
+    return result
  
 ![Alt text](/Output-images/pipeline0.png?)
 ![Alt text](/Output-images/pipeline3.png?)
