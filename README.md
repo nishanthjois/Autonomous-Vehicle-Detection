@@ -375,7 +375,7 @@ Code:
 Once we are comfortable with our output on a single image we can test on series of images:
     
     def pipeline(img):
-    scales = [1., 1.25, 1.5, 1.75, 2.]
+    scales = [1.0, 1.25, 1.5, 1.75, 2.]
     box_list = []
     # Experiment with ystart, ystop and scale values
     for (ystart, ystop, scale) in [(380, 580, 1), (400, 500, 1.3) , (420, 600, 1.5), (400, 650, 1.7), (450, 680, 2)]:
