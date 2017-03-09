@@ -100,6 +100,7 @@ Each pixel in the image gets a vote on which histogram bin it belongs based on t
 ![Alt text](/Output-images/hog2.png?)
 
 HOG for non-car:
+
 ![Alt text](/Output-images/hog__non_car_features.png?)
 
 The scikit-image package has a built in function to extract Histogram of Oriented Gradient features:
@@ -204,7 +205,7 @@ Code for combining  spatial, histogram of colors and hog features:
 
 6. Train a classifier to detect car images from other images using LinearSVC()
 (I experimented other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
-  
+
       from sklearn.svm import LinearSVC
       svc = LinearSVC()
       # Train the SVC
@@ -212,13 +213,13 @@ Code for combining  spatial, histogram of colors and hog features:
  
 7. Check accuracy
 
-       print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
+        print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
  
 8. Predict output:
 We can test predicted output using below code:
-  
-      print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
-      print('For labels: ', y_test[0:10])
+        
+        print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
+        print('For labels: ', y_test[0:10])
 
 9. Final step is to experiment with different parameters
 (Tweaked different parameters and finally settled with below parameters as with these accuracy was high and false postivies were minimum)
@@ -412,6 +413,7 @@ Below is video of vehicle detection pipeline running on Indian roads, not accura
 
 
 Future work:
+
 1. Optimize search by limiting number of frames to search, instead of processing for every frame. 
 
 2. Remove false postivies.
