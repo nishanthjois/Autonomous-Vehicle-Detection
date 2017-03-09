@@ -24,8 +24,9 @@ Let's start!
 ### Read input data
 First step is to read and store car and non-car images for training
 
-  `cars = glob.glob('vehicles/*/*.png')
-  notcars = glob.glob('non-vehicles/*/*.png')`
+  `cars = glob.glob('vehicles/*/*.png')`
+  
+  `notcars = glob.glob('non-vehicles/*/*.png')`
 
 ![Alt text](/Output-images/car_non_car.png?)
 
@@ -99,7 +100,6 @@ Each pixel in the image gets a vote on which histogram bin it belongs based on t
 ![Alt text](/Output-images/hog2.png?)
 
 HOG for non-car:
-
 ![Alt text](/Output-images/hog__non_car_features.png?)
 
 The scikit-image package has a built in function to extract Histogram of Oriented Gradient features:
@@ -199,8 +199,8 @@ Code for combining  spatial, histogram of colors and hog features:
         scaled_X, y, test_size=0.2, random_state=rand_state)
 
 5. Define output lables:
- 
-       y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
+
+        y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
 
 6. Train a classifier to detect car images from other images using LinearSVC()
 (I experimented other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
