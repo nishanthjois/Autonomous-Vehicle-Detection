@@ -103,15 +103,22 @@ HOG for non-car:
 
 ![Alt text](/Output-images/hog__non_car_features.png?)
 
-The scikit-image package has a built in function to extract Histogram of Oriented Gradient features:
+
+#### The scikit-image package has a built in function to extract Histogram of Oriented Gradient features:
 
 The scikit-image hog() function takes in a single color channel or grayscaled image as input, as well as parameters like orientations, pixels_per_cell and cells_per_block.
 
-The number of orientations is specified as an integer, and represents the number of orientation bins that the gradient information will be split up into in the histogram. Typical values are between 6 and 12 bins.
+Orientations:
+- The number of orientations is specified as an integer, and represents the number of orientation bins that the gradient information will be split up into in the histogram. 
+- Typical values are between 6 and 12 bins. To encode finer orientation details, increase the number of bins. Increasing this value increases the size of the feature vector, which requires more time to process.
 
-The pixels_per_cell parameter specifies the cell size over which each gradient histogram is computed. This paramater is passed as a 2-tuple so we could have different cell sizes in x and y, but cells are commonly chosen to be square.
+Pixels-per-cell:
+- The pixels_per_cell parameter specifies the cell size over which each gradient histogram is computed. This paramater is passed as a 2-tuple so we could have different cell sizes in x and y, but cells are commonly chosen to be square.
+- To capture large-scale spatial information, increase the cell size. When we increase the cell size, we may lose small-scale detail.
 
-The cells_per_block parameter is also passed as a 2-tuple, and specifies the local area over which the histogram counts in a given cell will be normalized.
+Cells-per-block:
+- The cells_per_block parameter is also passed as a 2-tuple, and specifies the local area over which the histogram counts in a given cell will be normalized.
+- Reducing the block size helps to capture the significance of local pixels. Smaller block size can help suppress illumination changes of HOG features.
 
   ```
   from skimage.feature import hog
