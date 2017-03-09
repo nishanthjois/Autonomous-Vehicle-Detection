@@ -206,6 +206,7 @@ Code for combining  spatial, histogram of colors and hog features:
 6. Train a classifier to detect car images from other images using LinearSVC()
 (I experimented other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
 
+        ` 
       from sklearn.svm import LinearSVC
       svc = LinearSVC()
       # Train the SVC
@@ -296,9 +297,11 @@ We are not sure what's the scale of the image we are searching (for example: car
        box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
        
 See what happens when scale is 1.25:
+
 ![Alt text](/Output-images/scale_1_25.png?)
 
 See what happens when scale is 1.5:
+
 ![Alt text](/Output-images/scale_1_5.png?)
 
 We will also choose different ystop/ystart along scales in our pipeline (see below) to effecitively search our cars.
