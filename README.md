@@ -156,46 +156,46 @@ Variety of features helps us in roboust detection system hence we normalize feat
 #### Combine features:
 
   
-  `
-  def extract_features(imgs, cspace='RGB', spatial_size=(32, 32), hist_bins=32, hist_range=(0, 256),
-    orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0,
-     spatial_feat=True, hist_feat=True, hog_feat=True):
-     
-        # Create a list to append feature vectors to
-        features = []
-        # Iterate through the list of images
-        for file in imgs:
-           combined_features = []
-            # Read in each one by one
-            image = mpimg.imread(file, format='PNG')
-            # apply color conversion if other than 'RGB'
-            feature_image = convert_color(image, conv='RGB2YCrCb')  
+    
+    def extract_features(imgs, cspace='RGB', spatial_size=(32, 32), hist_bins=32, hist_range=(0, 256),
+      orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0,
+       spatial_feat=True, hist_feat=True, hog_feat=True):
 
-            if spatial_feat:
-               # Apply bin_spatial() to get spatial color features
-                spatial_features = bin_spatial(feature_image, size=spatial_size)
-                combined_features.append(spatial_features)
-            if hist_feat:
-               # Apply color_hist() also with a color space option now
-                rhist, ghist, bhist, bin_centers, hist_features = color_hist(feature_image, nbins=hist_bins, bins_range=hist_range)
-                combined_features.append(hist_features)
-            if hog_feat:
-               # Call get_hog_features() with vis=False, feature_vec=True
-                if hog_channel == 'ALL':
-                   hog_features = []
-                    for channel in range(feature_image.shape[2]):
-                       hog_features.append(get_hog_features(feature_image[:,:,channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True))
-                    hog_features = np.ravel(hog_features)        
-                else:
-                   hog_features = get_hog_features(feature_image[:,:,hog_channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True)
-                combined_features.append(hog_features)
+          # Create a list to append feature vectors to
+          features = []
+          # Iterate through the list of images
+          for file in imgs:
+             combined_features = []
+              # Read in each one by one
+              image = mpimg.imread(file, format='PNG')
+              # apply color conversion if other than 'RGB'
+              feature_image = convert_color(image, conv='RGB2YCrCb')  
 
-            # Append the new feature vector to the features list
-            features.append(np.concatenate(combined_features))
-        # Return list of feature vectors
-        return features
+              if spatial_feat:
+                 # Apply bin_spatial() to get spatial color features
+                  spatial_features = bin_spatial(feature_image, size=spatial_size)
+                  combined_features.append(spatial_features)
+              if hist_feat:
+                 # Apply color_hist() also with a color space option now
+                  rhist, ghist, bhist, bin_centers, hist_features = color_hist(feature_image, nbins=hist_bins, bins_range=hist_range)
+                  combined_features.append(hist_features)
+              if hog_feat:
+                 # Call get_hog_features() with vis=False, feature_vec=True
+                  if hog_channel == 'ALL':
+                     hog_features = []
+                      for channel in range(feature_image.shape[2]):
+                         hog_features.append(get_hog_features(feature_image[:,:,channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True))
+                      hog_features = np.ravel(hog_features)        
+                  else:
+                     hog_features = get_hog_features(feature_image[:,:,hog_channel], orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True)
+                  combined_features.append(hog_features)
 
-`
+              # Append the new feature vector to the features list
+              features.append(np.concatenate(combined_features))
+          # Return list of feature vectors
+          return features
+
+
 
 ### Build a classifier
 [Code for this part is in 'Classifier' section of notebook]
@@ -206,54 +206,49 @@ Variety of features helps us in roboust detection system hence we normalize feat
 3. Shuffle the input data (provided) - to avoid problems due to overfitting
 4. Split the data into training and testing set - to avoid overfitting and improve generalization:
 
-`
+
       
-      from sklearn.cross_validation import train_test_split
+        from sklearn.cross_validation import train_test_split
 
-      rand_state = np.random.randint(0, 100)
+        rand_state = np.random.randint(0, 100)
 
-      X_train, X_test, y_train, y_test = train_test_split(
+        X_train, X_test, y_train, y_test = train_test_split(
 
-      scaled_X, y, test_size=0.2, random_state=rand_state)
-`
+        scaled_X, y, test_size=0.2, random_state=rand_state)
+
 
 5. Define output lables:
-
-`   # Define the labels vector  
     
-    y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
-`
+       y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
+
 
 6. Train a classifier to detect car images from other images using LinearSVC()
 (I tried other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
 
-  `
-    from sklearn.svm import LinearSVC
-    svc = LinearSVC()
-    # Train the SVC
-    svc.fit(X_train, y_train)
-  `
+  
+      from sklearn.svm import LinearSVC
+      svc = LinearSVC()
+      # Train the SVC
+      svc.fit(X_train, y_train)
+ 
 
 7. Check accuracy
 
-  `
-    print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
+       print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
 
-  `
+  
 
 8. Predict output:
 We can test predicted output using below code:
 
-  `
+  
     print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
     print('For labels: ', y_test[0:10])
-
-  `
 
 9. Final step is to experiment with different parameters
 (I Tweaked different parameters and finally settled with below parameters as with accuracy was high and false postivies were minimum)
 
-  `
+  
     color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
     orient = 9  # HOG orientations
     pix_per_cell = 8 # HOG pixels per cell
@@ -264,37 +259,31 @@ We can test predicted output using below code:
     spatial_feat = True # Spatial features on or off
     hist_feat = True # Histogram features on or off
 
-  `
-
 10. Save the model in a pickle file
 
-`
-  import pickle
-  hist_range = (0, 256)
-  dist_pickle = {}
-  dist_pickle["svc"] = svc
-  dist_pickle["scaler"] = X_scaler
-  dist_pickle["color_space"] = color_space
-  dist_pickle["orient"] = orient
-  dist_pickle["pix_per_cell"] = pix_per_cell
-  dist_pickle["cell_per_block"] = cell_per_block
-  dist_pickle["hog_channel"] = hog_channel
-  dist_pickle["spatial_size"] = spatial_size
-  dist_pickle["hist_bins"] = hist_bins
-  dist_pickle["hist_range"] = hist_range
+        import pickle
+        hist_range = (0, 256)
+        dist_pickle = {}
+        dist_pickle["svc"] = svc
+        dist_pickle["scaler"] = X_scaler
+        dist_pickle["color_space"] = color_space
+        dist_pickle["orient"] = orient
+        dist_pickle["pix_per_cell"] = pix_per_cell
+        dist_pickle["cell_per_block"] = cell_per_block
+        dist_pickle["hog_channel"] = hog_channel
+        dist_pickle["spatial_size"] = spatial_size
+        dist_pickle["hist_bins"] = hist_bins
+        dist_pickle["hist_range"] = hist_range
 
-  with open('svc_pickle.p', 'wb') as f:
-     pickle.dump(dist_pickle, f)
-`
+        with open('svc_pickle.p', 'wb') as f:
+           pickle.dump(dist_pickle, f)
 
-saved model can retrived using: 
 
-`
-  dist_pickle = pickle.load(open("svc_pickle.p", "rb"))
-  svc = dist_pickle["svc"]
-  # and so on ....
-`
+Saved model can retrived using: 
 
+    dist_pickle = pickle.load(open("svc_pickle.p", "rb"))
+    svc = dist_pickle["svc"]
+    # and so on ....
 
 ### Sliding window
 [Code for this part is in find_cars () method of notebook]
@@ -319,11 +308,9 @@ The multi-scale window approach prevents calculation of feature vectors for the 
 
 We are not sure what's the scale of the image we are searching (for example: cars far away appear smaller and closes ones appear large) hence we will set few minimum, maximum and intermediate scales to search. 
 
-  `
-  for scale in scales:
-     box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
+    for scale in scales:
+       box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
 
-  `
 
 ### Remove multiple detections False postives
 [Code for this part is in 'multiple detections and false postives' section of notebook]
@@ -357,7 +344,6 @@ Step 4:
 
 Code: 
 
-    `
     from scipy.ndimage.measurements import label
 
     def add_heat(img, bbox_list):
@@ -393,12 +379,10 @@ Code:
         # Return the image
         return imcopy
 
-    `
-
 ### Image pipeline
 Once we are comfortable with our output on a single image we can test on series of images:
 
-    `
+    
     def pipeline(img):
        scales = [1., 1.25, 1.5, 1.75, 2.]
        box_list = []
@@ -409,13 +393,13 @@ Once we are comfortable with our output on a single image we can test on series 
         labels = label(updated_heatmap)
         result = draw_labeled_bboxes(img, labels)
         return result
-     `
+     
 
 
 ###  Video pipeline
 Final step will be to run on project video:
 
-    `
+    
     from moviepy.editor import VideoFileClip
     from IPython.display import HTML
 
@@ -423,7 +407,7 @@ Final step will be to run on project video:
     clip1 = VideoFileClip("project_video.mp4")
     video_clip = clip1.fl_image(pipeline)
     %time video_clip.write_videofile(video_output, audio=False)
-    `
+    
 
 #### Lane detection and vechile detection:
 
