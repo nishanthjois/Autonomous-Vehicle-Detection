@@ -139,20 +139,18 @@ Variety of features helps us in roboust detection system hence we normalize feat
 
 #### Normalize using sklearn's StandardScaler():
 
- `
-  # Create an array stack of feature vectors
+
+    # Create an array stack of feature vectors
   
-  X = np.vstack((car_features, notcar_features)).astype(np.float64)     
+    X = np.vstack((car_features, notcar_features)).astype(np.float64)     
   
-  # Fit a per-column scaler
-  
-  X_scaler = StandardScaler().fit(X)
-  
-  # Apply the scaler to X
-  
-  scaled_X = X_scaler.transform(X)
-  
-  `
+    # Fit a per-column scaler
+
+    X_scaler = StandardScaler().fit(X)
+
+    # Apply the scaler to X
+
+    scaled_X = X_scaler.transform(X)
   
 
 #### Combine features:
@@ -209,60 +207,64 @@ Variety of features helps us in roboust detection system hence we normalize feat
 4. Split the data into training and testing set - to avoid overfitting and improve generalization:
 
 `
-  from sklearn.cross_validation import train_test_split
-  rand_state = np.random.randint(0, 100)
-  X_train, X_test, y_train, y_test = train_test_split(
-  scaled_X, y, test_size=0.2, random_state=rand_state)
+      
+      from sklearn.cross_validation import train_test_split
+
+      rand_state = np.random.randint(0, 100)
+
+      X_train, X_test, y_train, y_test = train_test_split(
+
+      scaled_X, y, test_size=0.2, random_state=rand_state)
 `
 
 5. Define output lables:
 
-`
-# Define the labels vector
-y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
+`   # Define the labels vector  
+    
+    y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
 `
 
 6. Train a classifier to detect car images from other images using LinearSVC()
 (I tried other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
 
-`
-  from sklearn.svm import LinearSVC
-  svc = LinearSVC()
-  # Train the SVC
-  svc.fit(X_train, y_train)
-`
+  `
+    from sklearn.svm import LinearSVC
+    svc = LinearSVC()
+    # Train the SVC
+    svc.fit(X_train, y_train)
+  `
 
 7. Check accuracy
 
-`
-  print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
+  `
+    print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
 
-`
+  `
 
 8. Predict output:
 We can test predicted output using below code:
 
-`
-  print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
-  print('For labels: ', y_test[0:10])
+  `
+    print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
+    print('For labels: ', y_test[0:10])
 
-`
+  `
 
 9. Final step is to experiment with different parameters
 (I Tweaked different parameters and finally settled with below parameters as with accuracy was high and false postivies were minimum)
 
-`
-  color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-  orient = 9  # HOG orientations
-  pix_per_cell = 8 # HOG pixels per cell
-  cell_per_block = 2 # HOG cells per block
-  hog_channel = "ALL" # Can be 0, 1, 2, or "ALL"
-  spatial_size = (32, 32) # Spatial binning dimensions
-  hist_bins = 32    # Number of histogram bins
-  spatial_feat = True # Spatial features on or off
-  hist_feat = True # Histogram features on or off
+  `
+    color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+    orient = 9  # HOG orientations
+    pix_per_cell = 8 # HOG pixels per cell
+    cell_per_block = 2 # HOG cells per block
+    hog_channel = "ALL" # Can be 0, 1, 2, or "ALL"
+    spatial_size = (32, 32) # Spatial binning dimensions
+    hist_bins = 32    # Number of histogram bins
+    spatial_feat = True # Spatial features on or off
+    hist_feat = True # Histogram features on or off
 
-`
+  `
 
 10. Save the model in a pickle file
 
@@ -317,11 +319,11 @@ The multi-scale window approach prevents calculation of feature vectors for the 
 
 We are not sure what's the scale of the image we are searching (for example: cars far away appear smaller and closes ones appear large) hence we will set few minimum, maximum and intermediate scales to search. 
 
-`
-for scale in scales:
-   box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
-   
-`
+  `
+  for scale in scales:
+     box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
+
+  `
 
 ### Remove multiple detections False postives
 [Code for this part is in 'multiple detections and false postives' section of notebook]
@@ -355,73 +357,73 @@ Step 4:
 
 Code: 
 
-`
-from scipy.ndimage.measurements import label
+    `
+    from scipy.ndimage.measurements import label
 
-def add_heat(img, bbox_list):
-    heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
-    # Iterate through list of bboxes
-    for box in bbox_list:
-        # Add += 1 for all pixels inside each bbox
-        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
-    # Return updated heatmap
-    return np.clip(heatmap, 0, 255)
-    
-def apply_threshold(heatmap, threshold):
-    heat = np.copy(heatmap)
-    # Zero out pixels below the threshold
-    heat[heat <= threshold] = 0
-    # Return thresholded map
-    return heat
+    def add_heat(img, bbox_list):
+        heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
+        # Iterate through list of bboxes
+        for box in bbox_list:
+            # Add += 1 for all pixels inside each bbox
+            heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+        # Return updated heatmap
+        return np.clip(heatmap, 0, 255)
 
-def draw_labeled_bboxes(img, labels):
-    # Make a copy of the image
-    imcopy = np.copy(img)
-    # Iterate through all detected cars
-    for car_number in range(1, labels[1]+1):
-        # Find pixels with each car_number label value
-        nonzero = (labels[0] == car_number).nonzero()
-        # Identify x and y values of those pixels
-        nonzeroy = np.array(nonzero[0])
-        nonzerox = np.array(nonzero[1])
-        # Define a bounding box based on min/max x and y
-        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
-        # Draw the box on the image
-        cv2.rectangle(imcopy, bbox[0], bbox[1], (0,0,255), 6)
-    # Return the image
-    return imcopy
+    def apply_threshold(heatmap, threshold):
+        heat = np.copy(heatmap)
+        # Zero out pixels below the threshold
+        heat[heat <= threshold] = 0
+        # Return thresholded map
+        return heat
 
-`
+    def draw_labeled_bboxes(img, labels):
+        # Make a copy of the image
+        imcopy = np.copy(img)
+        # Iterate through all detected cars
+        for car_number in range(1, labels[1]+1):
+            # Find pixels with each car_number label value
+            nonzero = (labels[0] == car_number).nonzero()
+            # Identify x and y values of those pixels
+            nonzeroy = np.array(nonzero[0])
+            nonzerox = np.array(nonzero[1])
+            # Define a bounding box based on min/max x and y
+            bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+            # Draw the box on the image
+            cv2.rectangle(imcopy, bbox[0], bbox[1], (0,0,255), 6)
+        # Return the image
+        return imcopy
+
+    `
 
 ### Image pipeline
 Once we are comfortable with our output on a single image we can test on series of images:
 
-`
-def pipeline(img):
-   scales = [1., 1.25, 1.5, 1.75, 2.]
-   box_list = []
-   for scale in scales:
-      box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
-    heatmap = add_heat(img, box_list)
-    updated_heatmap = apply_threshold(heatmap, 4)
-    labels = label(updated_heatmap)
-    result = draw_labeled_bboxes(img, labels)
-    return result
- `
+    `
+    def pipeline(img):
+       scales = [1., 1.25, 1.5, 1.75, 2.]
+       box_list = []
+       for scale in scales:
+          box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
+        heatmap = add_heat(img, box_list)
+        updated_heatmap = apply_threshold(heatmap, 4)
+        labels = label(updated_heatmap)
+        result = draw_labeled_bboxes(img, labels)
+        return result
+     `
 
 
 ###  Video pipeline
 Final step will be to run on project video:
 
-`
-from moviepy.editor import VideoFileClip
-from IPython.display import HTML
+    `
+    from moviepy.editor import VideoFileClip
+    from IPython.display import HTML
 
-video_output = 'project_video_output.mp4'
-clip1 = VideoFileClip("project_video.mp4")
-video_clip = clip1.fl_image(pipeline)
-%time video_clip.write_videofile(video_output, audio=False)
-`
+    video_output = 'project_video_output.mp4'
+    clip1 = VideoFileClip("project_video.mp4")
+    video_clip = clip1.fl_image(pipeline)
+    %time video_clip.write_videofile(video_output, audio=False)
+    `
 
 #### Lane detection and vechile detection:
 
@@ -432,6 +434,4 @@ Future work:
 1. Optimize search by limiting number of frames to search, instead of processing for every frame. 
 2. Remove false postivies.
 3. Make car detection smooth - in the above pipeline bounding boxes keeps jumping around.
-4. Try with a video taken on Indian roads!
-2. Current pipeline is slow
 
