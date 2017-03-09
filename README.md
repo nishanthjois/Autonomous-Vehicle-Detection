@@ -100,7 +100,7 @@ Each pixel in the image gets a vote on which histogram bin it belongs based on t
 
 HOG for non-car:
 
-![Alt text](/Output-images/non_hog222.png?)
+![Alt text](/Output-images/hog__non_car_features.png?)
 
 The scikit-image package has a built in function to extract Histogram of Oriented Gradient features:
 
@@ -217,8 +217,8 @@ Code for combining  spatial, histogram of colors and hog features:
 8. Predict output:
 We can test predicted output using below code:
   
-    print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
-    print('For labels: ', y_test[0:10])
+      print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
+      print('For labels: ', y_test[0:10])
 
 9. Final step is to experiment with different parameters
 (Tweaked different parameters and finally settled with below parameters as with these accuracy was high and false postivies were minimum)
@@ -375,7 +375,10 @@ Once we are comfortable with our output on a single image we can test on series 
         labels = label(updated_heatmap)
         result = draw_labeled_bboxes(img, labels)
         return result
-     
+ 
+![Alt text](/Output-images/pipeline0.png?)
+![Alt text](/Output-images/pipeline3.png?)
+
 ###  Video pipeline
 Final step will be to run on project video:
     
