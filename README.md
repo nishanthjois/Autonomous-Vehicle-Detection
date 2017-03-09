@@ -432,3 +432,10 @@ Future work:
 
 4. Try similar pipepline but using Deep learning with VGG-16 pre-trained model for Keras. 
 
+References:
+
+1. https://carnd.slack.com/
+
+2. https://carnd-forums.udacity.com/#all-updates
+
+3. https://medium.com/search?q=carnd
