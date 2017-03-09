@@ -109,7 +109,7 @@ HOG for non-car:
 The scikit-image hog() function takes in a single color channel or grayscaled image as input, as well as parameters like orientations, pixels_per_cell and cells_per_block.
 
 Orientations:
-- The number of orientations is specified as an integer, and represents the number of orientation bins that the gradient information will be split up into in the histogram. 
+- The number of orientations is specified as an integer, and represents the number of orientation bins that the gradient information will be split up into in the histogram.
 - Typical values are between 6 and 12 bins. To encode finer orientation details, increase the number of bins. Increasing this value increases the size of the feature vector, which requires more time to process.
 
 Pixels-per-cell:
