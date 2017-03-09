@@ -206,11 +206,11 @@ Code for combining  spatial, histogram of colors and hog features:
 6. Train a classifier to detect car images from other images using LinearSVC()
 (I experimented other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
 
-        ` 
-      from sklearn.svm import LinearSVC
-      svc = LinearSVC()
-      # Train the SVC
-      svc.fit(X_train, y_train)
+        ` from sklearn.svm import LinearSVC
+      
+          svc = LinearSVC()
+      
+          svc.fit(X_train, y_train)
  
 7. Check accuracy
 
