@@ -76,6 +76,7 @@ Even going all the way down to 32 x 32 pixel resolution, the car itself will sti
 ![Alt text](/Output-images/car_spat.png?)
 
 
+
 ### HOG:
 [Code for this section is in get_hog_features() method]
 
@@ -231,6 +232,18 @@ We can test predicted output using below code:
         hist_bins = 32    # Number of histogram bins
         spatial_feat = True # Spatial features on or off
         hist_feat = True # Histogram features on or off
+
+
+| Color channel  | HOG channel | Feature vectors | Orientations| Extraction time  | Training time | Prediction time | Accuracy | 
+| ------------- | ------------- |------------- | ------------- |------------- | ------------- |------------- | ------------- |
+| HSV | All | 8460|9|  66.22  | 4.11 |  0.00163  | 99.04%|
+| YCrCb | 0 | 8460|9|  29.6  | 13.42 |  0.00162  | 98.73%|
+| YCrCb | All | 8460|9| 65.83   | 3.07 |  0.00201  | 99.27%|
+| YCrCb | All | 10224|12| 63.47  | 3.26 |  0.00221  | 99.41%|
+| RGB | All | 8460|9| 60.24  | 16.8 |  0.00201  | 99.16%|
+
+*Time in seconds
+
 
 10. Save the model in a pickle file
 
