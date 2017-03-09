@@ -19,9 +19,7 @@ Steps of this project are the following:
 
 Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/vehicles.zip) and [non-vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/non-vehicles.zip) examples to train your classifier.  These example images come from a combination of the [GTI vehicle image database](http://www.gti.ssr.upm.es/data/Vehicle_database.html), the [KITTI vision benchmark suite](http://www.cvlibs.net/datasets/kitti/), and examples extracted from the project video itself. 
 
-**As an optional challenge** Once you have a working pipeline for vehicle detection, add in your lane-finding algorithm from the last project to do simultaneous lane-finding and vehicle detection!
-
-**If you're feeling ambitious** (also totally optional though), don't stop there!  We encourage you to go out and take video of your own, and show us how you would implement this project on a new video!
+Let's start!
 
 ### Read input data
 First step is to read and store car and non-car images for training
@@ -34,7 +32,7 @@ First step is to read and store car and non-car images for training
 ### Histogram of Color
 [Code for this section is in color_hist() method]
 
-Template mathching are not robust to changes in appearance, hence we use a better transformation method which is to compute histogram of color values, this gives locations of similar distribution a close match therefore removing sensitiviting to perfect arrangement of pixels 
+Template matching are not robust to changes in appearance, hence we use a better transformation method which is to compute histogram of color values, this gives locations of similar distribution a close match therefore removing sensitiviting to perfect arrangement of pixels. 
 
 We can construct histograms of the R, G, and B channels like this:
 ```
@@ -69,7 +67,7 @@ From results of various color spaces we can observe that it is easy to different
 
 Raw pixel values are still quite useful to include in our feature vector in searching for cars. As it will be cumbersome to include three color channels of a full resolution image we can perform spatial binning on an image and still retain enough information to help in finding vehicles.
 
-Even going all the way down to 32 x 32 pixel resolution, the car itself is still clearly identifiable by eye, and this means that the relevant features are still preserved at this resolution.
+Even going all the way down to 32 x 32 pixel resolution, the car itself will still be clearly identifiable by eye, and this means that the relevant features are still preserved at this resolution.
 
   `
   small_img = cv2.resize(image, (32, 32))
@@ -85,11 +83,11 @@ Gradients and edges gives more robust representation and captures notion of shap
 
 There is an excellent tutorial here: http://www.learnopencv.com/histogram-of-oriented-gradients/ but we will list few important terms here:
 
-In the HOG feature descriptor, the distribution (histograms) of directions of gradients (oriented gradients) are used as features. Gradients (x and y derivatives ) of an image are useful because the magnitude of gradients is large around edges and corners (regions of abrupt intensity changes) and we know that edges and corners pack in a lot more information about object shape than flat regions. 
+In the HOG feature descriptor, the distribution (histograms) of directions of gradients (oriented gradients) are used as features. Gradients (x and y derivatives) of an image are useful because the magnitude of gradients is large around edges and corners (regions of abrupt intensity changes) and we know that edges and corners pack in a lot more information about object shape than flat regions. 
 
 At every pixel, the gradient has a magnitude and a direction. We will group these pixels into small cells (say 8 x8 pixels). Inside these cell will compute HOG. The x-gradient fires on vertical lines and the y-gradient fires on horizontal lines. The magnitude of gradient fires where ever there is a sharp change in intensity. None of them fire when the region is smooth. 
 
-For color images, the gradients of the three channels are evaluated). The magnitude of gradient at a pixel is the maximum of the magnitude of gradients of the three channels, and the angle is the angle corresponding to the maximum gradient.
+For color images, the gradients of the three channels are evaluated. The magnitude of gradient at a pixel is the maximum of the magnitude of gradients of the three channels, and the angle is the angle corresponding to the maximum gradient.
 
 The histogram is essentially a vector (or an array ) of 9 bins (numbers) corresponding to angles 0, 20, 40, 60 … 160. Gradient samples are distributed into these bins and summed up. 
 
@@ -101,7 +99,7 @@ Each pixel in the image gets a vote on which histogram bin it belongs based on t
 
 HOG for non-car:
 
-![Alt text](/Output-images/non_hog.png?)
+![Alt text](/Output-images/non_hog222.png?)
 
 The scikit-image package has a built in function to extract Histogram of Oriented Gradient features:
 
@@ -109,9 +107,9 @@ The scikit-image hog() function takes in a single color channel or grayscaled im
 
 The number of orientations is specified as an integer, and represents the number of orientation bins that the gradient information will be split up into in the histogram. Typical values are between 6 and 12 bins.
 
-The pixels_per_cell parameter specifies the cell size over which each gradient histogram is computed. This paramater is passed as a 2-tuple so you could have different cell sizes in x and y, but cells are commonly chosen to be square.
+The pixels_per_cell parameter specifies the cell size over which each gradient histogram is computed. This paramater is passed as a 2-tuple so we could have different cell sizes in x and y, but cells are commonly chosen to be square.
 
-The cells_per_block parameter is also passed as a 2-tuple, and specifies the local area over which the histogram counts in a given cell will be normalized. Block normalization is not necessarily required, but generally leads to a more robust feature set.
+The cells_per_block parameter is also passed as a 2-tuple, and specifies the local area over which the histogram counts in a given cell will be normalized.
 
   ```
   from skimage.feature import hog
@@ -128,35 +126,25 @@ The cells_per_block parameter is also passed as a 2-tuple, and specifies the loc
           return features
   ``` 
 
-Let's say we are computing HOG features for an image that is 64×64 pixels. If you set pixels_per_cell=(8, 8) and cells_per_block=(2, 2) and orientations=9. The HOG features for all cells in each block are computed at each block position and the block steps across and down through the image cell by cell.
-
-So, the actual number of features in your final feature vector will be the total number of block positions multiplied by the number of cells per block, times the number of orientations, or in the case shown above: 7×7×2×2×9=1764.
+Let's say we are computing HOG features for an image that is 64×64 pixels. If we set pixels_per_cell=(8, 8) and cells_per_block=(2, 2) and orientations=9. The HOG features for all cells in each block are computed at each block position and the block steps across and down through the image cell by cell. So, the actual number of features in your final feature vector will be the total number of block positions multiplied by the number of cells per block, times the number of orientations, or in the case shown above: 7×7×2×2×9=1764.
 
 ### Normalization and combining features:
 [Code for normalization is shown below and code for extracting features section is in extract_features() method]
 
-Variety of features helps us in roboust detection system hence we normalize features and then combine them.
+Variety of features helps us in roboust detection system hence we first normalize all these features and then combine them.
 
 #### Normalize using sklearn's StandardScaler():
 
-
     # Create an array stack of feature vectors
-  
     X = np.vstack((car_features, notcar_features)).astype(np.float64)     
-  
     # Fit a per-column scaler
-
     X_scaler = StandardScaler().fit(X)
-
     # Apply the scaler to X
-
     scaled_X = X_scaler.transform(X)
   
-
 #### Combine features:
+Code for combining  spatial, histogram of colors and hog features:
 
-  
-    
     def extract_features(imgs, cspace='RGB', spatial_size=(32, 32), hist_bins=32, hist_range=(0, 256),
       orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0,
        spatial_feat=True, hist_feat=True, hog_feat=True):
@@ -195,8 +183,6 @@ Variety of features helps us in roboust detection system hence we normalize feat
           # Return list of feature vectors
           return features
 
-
-
 ### Build a classifier
 [Code for this part is in 'Classifier' section of notebook]
 
@@ -205,59 +191,46 @@ Variety of features helps us in roboust detection system hence we normalize feat
 2. Combine features
 3. Shuffle the input data (provided) - to avoid problems due to overfitting
 4. Split the data into training and testing set - to avoid overfitting and improve generalization:
-
-
       
         from sklearn.cross_validation import train_test_split
-
         rand_state = np.random.randint(0, 100)
-
         X_train, X_test, y_train, y_test = train_test_split(
-
         scaled_X, y, test_size=0.2, random_state=rand_state)
 
-
 5. Define output lables:
-    
+ 
        y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
 
-
 6. Train a classifier to detect car images from other images using LinearSVC()
-(I tried other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
-
+(I experimented other classifiers but finally considered this LinearSVC() was simple, fast and gave accuracy of more than 98%)
   
       from sklearn.svm import LinearSVC
       svc = LinearSVC()
       # Train the SVC
       svc.fit(X_train, y_train)
  
-
 7. Check accuracy
 
        print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
-
-  
-
+ 
 8. Predict output:
 We can test predicted output using below code:
-
   
     print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
     print('For labels: ', y_test[0:10])
 
 9. Final step is to experiment with different parameters
-(I Tweaked different parameters and finally settled with below parameters as with accuracy was high and false postivies were minimum)
+(Tweaked different parameters and finally settled with below parameters as with these accuracy was high and false postivies were minimum)
 
-  
-    color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-    orient = 9  # HOG orientations
-    pix_per_cell = 8 # HOG pixels per cell
-    cell_per_block = 2 # HOG cells per block
-    hog_channel = "ALL" # Can be 0, 1, 2, or "ALL"
-    spatial_size = (32, 32) # Spatial binning dimensions
-    hist_bins = 32    # Number of histogram bins
-    spatial_feat = True # Spatial features on or off
-    hist_feat = True # Histogram features on or off
+        color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+        orient = 9  # HOG orientations
+        pix_per_cell = 8 # HOG pixels per cell
+        cell_per_block = 2 # HOG cells per block
+        hog_channel = "ALL" # Can be 0, 1, 2, or "ALL"
+        spatial_size = (32, 32) # Spatial binning dimensions
+        hist_bins = 32    # Number of histogram bins
+        spatial_feat = True # Spatial features on or off
+        hist_feat = True # Histogram features on or off
 
 10. Save the model in a pickle file
 
@@ -278,12 +251,11 @@ We can test predicted output using below code:
         with open('svc_pickle.p', 'wb') as f:
            pickle.dump(dist_pickle, f)
 
-
 Saved model can retrived using: 
 
-    dist_pickle = pickle.load(open("svc_pickle.p", "rb"))
-    svc = dist_pickle["svc"]
-    # and so on ....
+      dist_pickle = pickle.load(open("svc_pickle.p", "rb"))
+      svc = dist_pickle["svc"]
+      # and so on ....
 
 ### Sliding window
 [Code for this part is in find_cars () method of notebook]
@@ -296,10 +268,8 @@ Saved model can retrived using:
 
 Instead of extracting hog features for every small patch, we will extract hog features once and sub small to get all windows/boxes.
 
-
 Car predicted using a classifier and drawn rectangle over predicted cars:
 ![Alt text](/Output-images/window_search.png.png?)
-
 
 ### Multiscape search
 [Code for this part is in pipleline () method of notebook]
@@ -311,34 +281,34 @@ We are not sure what's the scale of the image we are searching (for example: car
     for scale in scales:
        box_list += find_cars(img, ystart, ystop, scale, svc, X_scaler, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, hist_range)
 
-
-### Remove multiple detections False postives
+### Remove multiple detections and false postives
 [Code for this part is in 'multiple detections and false postives' section of notebook]
 
 As seen below we will get multiple detections for the same car and also a false positives (i.e., classifier predicted a car where was no car), we should filter these out:
 
 ![Alt text](/Output-images/multiple_detections.png?)
 
+For this, we will build a heat map to combine overlapping detections and remove false positives:
+
 Step 1:
-For this, we will build a heat map to combine overlapping detections and remove false positives.
-- To make a heat-map, we're simply going to add "heat" (+=1) for all pixels within windows where a positive detection is reported by your classifier. 
+To make a heat-map, we're simply going to add "heat" (+=1) for all pixels within windows where a positive detection is reported by your classifier. 
 
 Heat map with both multiple detections False postive:
 
 ![Alt text](/Output-images/heatmap_falsepositives.png?)
 
 Step 2:
-- Due to above, areas of multiple detections get "hot", while transient false positives stay "cool". We can then simply threshold your heatmap to remove false positives. Ex: heatmap = threshold(heatmap, 4) # if number of detected windows are less than 4 than those will be considered as false positive.
+Due to above, areas of multiple detections get "hot", while transient false positives stay "cool". We can then simply threshold your heatmap to remove false positives. Ex: heatmap = threshold(heatmap, 4) # if number of detected windows are less than 4 than those will be considered as false positive.
 
 Thresholded heatmap:
 
 ![Alt text](/Output-images/thresholded_heatmap.png?)
 
 Step 3:
-- To figure out how many cars we have in each frame and which pixels belong to which cars, we use the label() function from scipy.ndimage.measurements. 
+To figure out how many cars we have in each frame and which pixels belong to which cars, we use the label() function from scipy.ndimage.measurements. 
 
 Step 4:
-- We can take our thresholded and labeled images and put bounding boxes around the labeled regions, so that we get single box instead of multiple detections for the same car - this we will our output image
+We can take our thresholded and labeled images and put bounding boxes around the labeled regions, so that we get single box instead of multiple detections for the same car - this we will our output image.
 
 ![Alt text](/Output-images/final_car_position.png?)
 
@@ -381,7 +351,6 @@ Code:
 
 ### Image pipeline
 Once we are comfortable with our output on a single image we can test on series of images:
-
     
     def pipeline(img):
        scales = [1., 1.25, 1.5, 1.75, 2.]
@@ -394,11 +363,8 @@ Once we are comfortable with our output on a single image we can test on series 
         result = draw_labeled_bboxes(img, labels)
         return result
      
-
-
 ###  Video pipeline
 Final step will be to run on project video:
-
     
     from moviepy.editor import VideoFileClip
     from IPython.display import HTML
@@ -409,13 +375,23 @@ Final step will be to run on project video:
     %time video_clip.write_videofile(video_output, audio=False)
     
 
-#### Lane detection and vechile detection:
+#### Lane detection and vehicle detection:
+Here we will combine the lane detection (project #4) and vehicle detection pipeline test on our project_video.
 
-Here we will combine the Lane detection and vechile detection pipeline test on our project_video.
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/JBeuDtFhy94/0.jpg)](https://www.youtube.com/watch?v=JBeuDtFhy94)
+
+#### Car detection on recorded video in India:
+Below is video of vehicle detection pipeline running on Indian roads, not accurate but still did a decent job that too without changing any part of the code; we can see that it has detected cars most of the times (and as expected not detected other vehicles).
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/7nzptpxBQzY/0.jpg)](http://www.youtube.com/watch?v=7nzptpxBQzY)
 
 
 Future work:
 1. Optimize search by limiting number of frames to search, instead of processing for every frame. 
+
 2. Remove false postivies.
+
 3. Make car detection smooth - in the above pipeline bounding boxes keeps jumping around.
+
+4. Try similar pipepline but using Deep learning with VGG-16 pre-trained model for Keras. 
 
