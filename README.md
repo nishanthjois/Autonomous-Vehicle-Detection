@@ -286,7 +286,7 @@ Instead of extracting hog features for every small patch, we will extract hog fe
 Car predicted using a classifier and drawn rectangle over predicted cars:
 ![Alt text](/Output-images/window_search.png?)
 
-### Multiscape search
+### Multiscale search
 [Code for this part is in pipleline () method of notebook]
 
 The multi-scale window approach prevents calculation of feature vectors for the complete image and thus helps in speeding up the process. 
@@ -410,7 +410,7 @@ Here we will combine the lane detection (project #4) and vehicle detection pipel
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/JBeuDtFhy94/0.jpg)](https://www.youtube.com/watch?v=JBeuDtFhy94)
 
 #### Car detection on recorded video in India:
-Below is video of vehicle detection pipeline running on Indian roads, not accurate but still did a decent job that too without changing any part of the code; we can see that it has detected cars most of the times (and as expected not detected other vehicles).
+Below is video of vehicle detection pipeline running on video which I recorded for this project; results are not accurate but still does a decent job that too without changing any part of the code; we can see that it has detected cars most of the times (and as expected not detected other vehicles).
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/7nzptpxBQzY/0.jpg)](http://www.youtube.com/watch?v=7nzptpxBQzY)
 
